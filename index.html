@@ -22,9 +22,9 @@
 <header><h1>PV-Diagnosztika AI</h1><p>Napelemes rendszerhiba? Segítünk szűkíteni az okot.</p></header>
 <main>
   <section class="card">
-    <h2>1. Rendszer és hibajelenség</h2>
+    <div class="row" style="justify-content:space-between;align-items:center"><h2 style="margin:0">1. Rendszer és hibajelenség</h2><span class="pill" id="caseId">CASE-...</span></div>
     <div class="grid">
-      <div><label>Gyártó</label><select id="brand"><option>Huawei</option><option>Deye</option><option>SolaX</option><option>Sofar</option><option>Solplanet</option><option>SolarEdge</option><option>Fronius</option><option>Egyéb</option></select></div>
+      <div><label>Gyártó</label><select id="brand"><option>Huawei</option><option>Deye</option><option>SolaX</option><option>Sofar</option><option>Solplanet</option><option>Sungrow</option><option>GoodWe</option><option>Fronius</option><option>SolarEdge</option><option>Growatt</option><option>Solis</option><option>Sigenergy</option><option>SMA</option><option>FoxESS</option><option>Victron Energy</option><option>SAJ</option><option>LuxPower</option><option>Ingeteam</option><option>FIMER / ABB</option><option>Egyéb</option></select></div>
       <div><label>Inverter modell <span class="hint">(opcionális)</span></label><input id="model" placeholder="pl. SUN-10K-SG04LP3" /></div>
     </div>
     <label>Ügyfél panasza / tünet</label>
@@ -68,15 +68,17 @@
     <p><strong>Bizonyosság:</strong> <span class="confidence" id="confidence"></span></p>
     <div class="notice">⚠️ A rendszer szakmai előszűrésre készült. DC/AC mérés, burkolatbontás vagy villamos beavatkozás csak megfelelő képesítéssel történjen.</div>
     <hr style="border:none;border-top:1px solid var(--line);margin:18px 0" />
-    <h3>Helyes volt a diagnózis?</h3>
-    <div class="row"><button class="btn good feedback" data-v="Igen">Igen</button><button class="btn secondary feedback" data-v="Részben">Részben</button><button class="btn bad feedback" data-v="Nem">Nem</button></div>
+    <h3>Szakmai tesztelői értékelés</h3>
+    <div class="row"><button class="btn good feedback" data-v="Helyes">Helyes</button><button class="btn secondary feedback" data-v="Jó irány, de hiányos">Jó irány, de hiányos</button><button class="btn bad feedback" data-v="Rossz irány">Rossz irány</button></div>
+    <label>Te mit ellenőriznél következőként? <span class="hint">(opcionális)</span></label><textarea id="expertNext" placeholder="Szakmai megjegyzés, következő mérés vagy ellenőrzés..."></textarea>
     <div id="feedbackBox" style="display:none;margin-top:12px"><label>Mi volt a tényleges hiba és mi oldotta meg?</label><textarea id="actual"></textarea><button class="btn" id="saveFeedback">Visszajelzés mentése</button></div>
     <div id="saved" class="small" style="margin-top:8px"></div>
   </section>
 </main>
-<footer>PV-Diagnosztika AI – helyi MVP prototípus. Az adatok csak a böngészőben maradnak.</footer>
+<footer>PV-Diagnosztika AI – MVP v2 tesztplatform. A visszajelzések ebben a statikus verzióban csak az adott böngészőben maradnak.</footer>
 <script>
 const $=id=>document.getElementById(id);
+const caseId='CASE-'+new Date().toISOString().slice(0,10).replaceAll('-','')+'-'+Math.random().toString(36).slice(2,6).toUpperCase(); $('caseId').textContent=caseId;
 $('images').addEventListener('change',e=>{const p=$('preview');p.innerHTML='';[...e.target.files].slice(0,5).forEach(f=>{const img=document.createElement('img');img.src=URL.createObjectURL(f);p.appendChild(img)})});
 function val(id){return ($(id).value||'').trim()} function num(id){const n=parseFloat(val(id));return Number.isFinite(n)?n:null}
 function addCause(arr,title,pct,why){arr.push({title,pct,why})}
@@ -125,7 +127,7 @@ $('analyze').onclick=()=>{
 };
 $('reset').onclick=()=>location.reload();
 let fb='';document.querySelectorAll('.feedback').forEach(b=>b.onclick=()=>{fb=b.dataset.v;$('feedbackBox').style.display='block';$('saved').textContent=`Választás: ${fb}`});
-$('saveFeedback').onclick=()=>{const rec={date:new Date().toISOString(),brand:val('brand'),model:val('model'),symptom:val('symptom'),feedback:fb,actual:val('actual')};const all=JSON.parse(localStorage.getItem('pvdiag_feedback')||'[]');all.push(rec);localStorage.setItem('pvdiag_feedback',JSON.stringify(all));$('saved').textContent='Visszajelzés elmentve a böngészőben.'};
+$('saveFeedback').onclick=()=>{const rec={caseId,date:new Date().toISOString(),brand:val('brand'),model:val('model'),symptom:val('symptom'),feedback:fb,expertNext:val('expertNext'),actual:val('actual')};const all=JSON.parse(localStorage.getItem('pvdiag_feedback')||'[]');all.push(rec);localStorage.setItem('pvdiag_feedback',JSON.stringify(all));$('saved').textContent='Visszajelzés elmentve a böngészőben.'};
 </script>
 </body>
 </html>
