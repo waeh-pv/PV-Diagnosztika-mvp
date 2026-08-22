@@ -128,6 +128,62 @@ $('analyze').onclick=()=>{
 $('reset').onclick=()=>location.reload();
 let fb='';document.querySelectorAll('.feedback').forEach(b=>b.onclick=()=>{fb=b.dataset.v;$('feedbackBox').style.display='block';$('saved').textContent=`Választás: ${fb}`});
 $('saveFeedback').onclick=()=>{const rec={caseId,date:new Date().toISOString(),brand:val('brand'),model:val('model'),symptom:val('symptom'),feedback:fb,expertNext:val('expertNext'),actual:val('actual')};const all=JSON.parse(localStorage.getItem('pvdiag_feedback')||'[]');all.push(rec);localStorage.setItem('pvdiag_feedback',JSON.stringify(all));$('saved').textContent='Visszajelzés elmentve a böngészőben.'};
+const SUPABASE_URL = 'https://dgqzcrrogrssdkuiynrc.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_p5NVA69o2-5p3h7AwH_Nrw_dmh_gcDS';
+
+async function saveToSupabase(data) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/diagnostic_cases`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify(data)
+  });
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+}
+$('saveFeedback').addEventListener('click', async () => {
+  const data = {
+    case_id: caseId,
+    manufacturer: val('brand') || null,
+    inverter_model: val('model') || null,
+    symptom: val('symptom') || null,
+    description: val('desc') || null,
+
+    pv_kwp: num('pvkwp'),
+    current_pv_kw: num('pvkw'),
+    load_kw: num('loadkw'),
+    grid_kw: num('gridkw'),
+    battery_soc: num('soc'),
+
+    error_code: null,
+
+    diagnosis: $('summary')?.innerText || null,
+
+    solution:
+      document.querySelector('#feedbackBox textarea')?.value?.trim() || null,
+
+    status: fb || 'submitted'
+  };
+
+  try {
+    await saveToSupabase(data);
+
+    $('saved').textContent =
+      '✓ Visszajelzés elmentve a központi adatbázisba.';
+
+  } catch (error) {
+    console.error('Supabase mentési hiba:', error);
+
+    $('saved').textContent =
+      '⚠ A helyi mentés sikerült, de a központi adatbázis mentése nem.';
+  }
+});
 </script>
 </body>
 </html>
