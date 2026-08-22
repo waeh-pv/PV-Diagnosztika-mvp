@@ -66,6 +66,14 @@
     <h3>Ellenőrzési sorrend</h3><ol class="steps" id="steps"></ol>
     <p><strong>Következő javasolt lépés:</strong> <span id="next"></span></p>
     <p><strong>Bizonyosság:</strong> <span class="confidence" id="confidence"></span></p>
+    <hr style="border:none;border-top:1px solid var(--line);margin:18px 0" />
+
+<h3>Hasonló korábbi szakmai esetek</h3>
+
+<div id="previousCases" class="small">
+  Korábbi esetek keresése...
+</div>
+
     <div class="notice">⚠️ A rendszer szakmai előszűrésre készült. DC/AC mérés, burkolatbontás vagy villamos beavatkozás csak megfelelő képesítéssel történjen.</div>
     <hr style="border:none;border-top:1px solid var(--line);margin:18px 0" />
     <h3>Szakmai tesztelői értékelés</h3>
@@ -124,7 +132,10 @@ $('analyze').onclick=()=>{
   $('summary').innerHTML=`<p>${summary}</p><span class="pill">${brand}</span><span class="pill">${symptom}</span>`;
   $('causes').innerHTML=causes.map(c=>`<div class="cause"><strong>${c.title}</strong> – ${c.pct}%<br><span class="small">${c.why}</span></div>`).join('');
   $('steps').innerHTML=steps.map(s=>`<li>${s}</li>`).join(''); $('next').textContent=next; $('confidence').textContent=conf; $('result').style.display='block'; $('result').scrollIntoView({behavior:'smooth'});
+renderPreviousCases();
 };
+  
+
 $('reset').onclick=()=>location.reload();
 let fb='';document.querySelectorAll('.feedback').forEach(b=>b.onclick=()=>{fb=b.dataset.v;$('feedbackBox').style.display='block';$('saved').textContent=`Választás: ${fb}`});
 $('saveFeedback').onclick=()=>{const rec={caseId,date:new Date().toISOString(),brand:val('brand'),model:val('model'),symptom:val('symptom'),feedback:fb,expertNext:val('expertNext'),actual:val('actual')};const all=JSON.parse(localStorage.getItem('pvdiag_feedback')||'[]');all.push(rec);localStorage.setItem('pvdiag_feedback',JSON.stringify(all));$('saved').textContent='Visszajelzés elmentve a böngészőben.'};
@@ -147,6 +158,101 @@ async function saveToSupabase(data) {
     throw new Error(await response.text());
   }
 }
+  async function loadPreviousCases() {
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/diagnostic_cases?select=*&order=created_at.desc&limit=20`,
+    {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+
+  return await response.json();
+}
+  async function renderPreviousCases() {
+  const box = $('previousCases');
+
+  try {
+    const cases = await loadPreviousCases();
+
+    const brand = val('brand').toLowerCase();
+    const symptom = val('symptom').toLowerCase();
+
+    const relevant = cases.filter(c => {
+      const sameBrand =
+        (c.manufacturer || '').toLowerCase() === brand;
+
+      const sameSymptom =
+        (c.symptom || '').toLowerCase() === symptom;
+
+      return sameBrand || sameSymptom;
+    }).slice(0, 5);
+
+    if (!relevant.length) {
+      box.textContent = 'Nincs még hasonló korábbi szakmai eset.';
+      return;
+    }
+
+    box.innerHTML = relevant.map(c => `
+      <div class="cause">
+        <strong>${c.manufacturer || 'Ismeretlen gyártó'} ${c.inverter_model || ''}</strong><br>
+        Tünet: ${c.symptom || '-'}<br>
+        Diagnózis: ${c.diagnosis || '-'}<br>
+        Megoldás: ${c.solution || '-'}
+      </div>
+    `).join('');
+
+  } catch (error) {
+    console.error('Korábbi esetek betöltési hiba:', error);
+    box.textContent = 'A korábbi esetek most nem tölthetők be.';
+  }
+}
+
+
+ $('saveFeedback').addEventListener('click', async () => {
+  const data = {
+    case_id: caseId,
+    manufacturer: val('brand') || null,
+    inverter_model: val('model') || null,
+    symptom: val('symptom') || null,
+    description: val('desc') || null,
+
+    pv_kwp: num('pvkwp'),
+    current_pv_kw: num('pvkw'),
+    load_kw: num('loadkw'),
+    grid_kw: num('gridkw'),
+    battery_soc: num('soc'),
+
+    error_code: null,
+
+    diagnosis: $('summary')?.innerText || null,
+
+    solution:
+      document.querySelector('#feedbackBox textarea')?.value?.trim() || null,
+
+    status: fb || 'submitted'
+  };
+
+  try {
+    await saveToSupabase(data);
+
+    $('saved').textContent =
+      '✓ Visszajelzés elmentve a központi adatbázisba.';
+
+  } catch (error) {
+    console.error('Supabase mentési hiba:', error);
+
+    $('saved').textContent =
+      '⚠ A helyi mentés sikerült, de a központi adatbázis mentése nem.';
+  }
+});
+ 
 $('saveFeedback').addEventListener('click', async () => {
   const data = {
     case_id: caseId,
