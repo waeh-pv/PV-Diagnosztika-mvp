@@ -184,15 +184,31 @@ async function saveToSupabase(data) {
     const brand = val('brand').toLowerCase();
     const symptom = val('symptom').toLowerCase();
 
-    const relevant = cases.filter(c => {
-      const sameBrand =
-        (c.manufacturer || '').toLowerCase() === brand;
+   const model = val('model').toLowerCase();
 
-      const sameSymptom =
-        (c.symptom || '').toLowerCase() === symptom;
+const relevant = cases
+  .map(c => {
+    let score = 0;
 
-      return sameBrand || sameSymptom;
-    }).slice(0, 5);
+    const cBrand = (c.manufacturer || '').toLowerCase();
+    const cModel = (c.inverter_model || '').toLowerCase();
+    const cSymptom = (c.symptom || '').toLowerCase();
+    const cStatus = (c.status || '').toLowerCase();
+
+    if (cBrand === brand) score += 5;
+    if (model && cModel === model) score += 4;
+    if (cSymptom === symptom) score += 4;
+
+    if (cStatus === 'helyes') score += 3;
+    if (cStatus.includes('jó irány')) score += 1;
+    if (cStatus.includes('rossz irány')) score -= 3;
+
+    return { ...c, score };
+  })
+  .filter(c => c.score > 0)
+  .sort((a, b) => b.score - a.score)
+  .slice(0, 5);
+
 
     if (!relevant.length) {
       box.textContent = 'Nincs még hasonló korábbi szakmai eset.';
