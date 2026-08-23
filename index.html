@@ -302,43 +302,7 @@ $('summary').appendChild(note);
   }
 });
  
-$('saveFeedback').addEventListener('click', async () => {
-  const data = {
-    case_id: caseId,
-    manufacturer: val('brand') || null,
-    inverter_model: val('model') || null,
-    symptom: val('symptom') || null,
-    description: val('desc') || null,
 
-    pv_kwp: num('pvkwp'),
-    current_pv_kw: num('pvkw'),
-    load_kw: num('loadkw'),
-    grid_kw: num('gridkw'),
-    battery_soc: num('soc'),
-
-    error_code: null,
-
-    diagnosis: $('summary')?.innerText || null,
-
-    solution:
-      document.querySelector('#feedbackBox textarea')?.value?.trim() || null,
-
-    status: fb || 'submitted'
-  };
-
-  try {
-    await saveToSupabase(data);
-
-    $('saved').textContent =
-      '✓ Visszajelzés elmentve a központi adatbázisba.';
-
-  } catch (error) {
-    console.error('Supabase mentési hiba:', error);
-
-    $('saved').textContent =
-      '⚠ A helyi mentés sikerült, de a központi adatbázis mentése nem.';
-  }
-});
 </script>
 </body>
 </html>
