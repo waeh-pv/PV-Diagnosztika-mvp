@@ -135,6 +135,39 @@ try {
   const currentBrand = brand.toLowerCase();
   const currentModel = val('model').toLowerCase();
   const currentSymptom = symptom.toLowerCase();
+// Aktuális mérési adatok a hasonló esetek összehasonlításához
+const currentMeasurements = {
+  pv_kwp: pvkwp,
+  current_pv_kw: pv,
+  load_kw: load,
+  grid_kw: grid,
+  battery_soc: soc
+};
+function measurementSimilarity(oldCase) {
+  let score = 0;
+  let compared = 0;
+
+  const compare = (current, old, tolerance) => {
+    if (current == null || old == null) return;
+
+    compared++;
+
+    const diff = Math.abs(current - old);
+    const base = Math.max(Math.abs(current), Math.abs(old), 1);
+
+    if (diff / base <= tolerance) score++;
+  };
+
+  compare(currentMeasurements.pv_kwp, oldCase.pv_kwp, 0.20);
+  compare(currentMeasurements.current_pv_kw, oldCase.current_pv_kw, 0.25);
+  compare(currentMeasurements.load_kw, oldCase.load_kw, 0.25);
+  compare(currentMeasurements.grid_kw, oldCase.grid_kw, 0.30);
+  compare(currentMeasurements.battery_soc, oldCase.battery_soc, 0.15);
+
+  if (compared === 0) return 0;
+
+  return score / compared;
+}  
 
   const learnedCases = history.filter(c => {
     const hBrand = (c.manufacturer || '').toLowerCase();
@@ -161,14 +194,15 @@ console.log('Tanulási esetek:', learnedCases);
         (oldCase.diagnosis || '') + ' ' +
         (oldCase.solution || '')
       ).toLowerCase();
-
+const similarity = measurementSimilarity(oldCase);
+const similarityBonus = similarity >= 0.6 ? 0.5 : 0;
       const matches = causeWords.filter(w => oldText.includes(w)).length;
 
       if (matches > 0) {
         const status = (oldCase.status || '').toLowerCase();
 
-       if (status === 'helyes') learning += 1;
-else if (status.includes('jó irány')) learning += 0.5;
+      if (status === 'helyes') learning += 1 + similarityBonus;
+else if (status.includes('jó irány')) learning += 0.5 + similarityBonus;
 else if (status.includes('rossz irány')) learning -= 1;
     }
 });
