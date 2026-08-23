@@ -205,9 +205,15 @@ const relevant = cases
 
     return { ...c, score };
   })
-  .filter(c => c.score > 0)
-  .sort((a, b) => b.score - a.score)
-  .slice(0, 5);
+ .filter(c => {
+  const cBrand = (c.manufacturer || '').toLowerCase();
+
+  if (brand && cBrand !== brand) return false;
+
+  return c.score > 0;
+})
+.sort((a, b) => b.score - a.score)
+.slice(0, 5);
 
     // Korábbi szakmai tapasztalat hatása az aktuális diagnózisra
 const bestCase = relevant[0];
