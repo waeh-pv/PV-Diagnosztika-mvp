@@ -115,6 +115,47 @@ $('analyze').onclick=async()=>{
     addCause(causes,'WiFi dongle firmware / instabil kommunikáció',82,'Valós terepi esetben a SolaX support dongle firmware-frissítést javasolt; instabil kapcsolatnál helyszíni USB-frissítés lehet szükséges.');
     addCause(causes,'2,4 GHz WiFi / jelerősség / router',64,'A dongle online/offline váltakozását hálózati instabilitás is okozhatja.');
     steps.push('Ellenőrizd, hogy az inverter termelése helyben folyamatos-e az online megszakadások alatt.','Ellenőrizd a dongle csatlakozását és tápellátását.','Teszteld stabil 2,4 GHz hálózaton vagy hotspoton.','Ellenőrizd a dongle firmware-verzióját; szükség esetén supporttal frissítsd.'); next='Dongle és hálózat elkülönítő tesztje, majd firmware ellenőrzése'; conf='Magas';
+    } else if (
+  brand === 'SolaX' &&
+  (
+    symptom === 'gyenge termelés' ||
+    symptom === 'alacsony termelés' ||
+    text.includes('gyenge termel') ||
+    text.includes('alacsony termel')
+  )
+) {
+  summary = 'Alacsony termelésnél elsőként a DC/PV oldalt, a teljesítménykorlátozást és a mérési/Smart Meter oldalt érdemes ellenőrizni.';
+
+  addCause(
+    causes,
+    'DC/PV oldali probléma',
+    72,
+    'String, csatlakozó, árnyékolás, MPPT vagy részleges DC oldali hiba csökkentheti a termelést.'
+  );
+
+  addCause(
+    causes,
+    'Teljesítménykorlátozás / exportlimit',
+    58,
+    'Active Power Control, zero-export vagy más teljesítménylimit is visszafoghatja az invertert.'
+  );
+
+  addCause(
+    causes,
+    'CT / Smart Meter / mérési eltérés',
+    44,
+    'Hibás mérési irány vagy pontatlan mérés hibás teljesítményszabályozást okozhat.'
+  );
+
+  steps.push(
+    'Ellenőrizd a stringfeszültségeket és MPPT értékeket.',
+    'Nézd meg az Active Power Control / zero-export beállításokat.',
+    'Ellenőrizd a CT / Smart Meter irányát és pillanatnyi értékeit.',
+    'Hasonlítsd össze az aktuális PV teljesítményt a várható termeléssel.'
+  );
+
+  next = 'DC/PV és teljesítménykorlátozás célzott ellenőrzése';
+  conf = 'Közepes';
   } else if(brand==='Deye' && (text.includes('rendellen')||text.includes('normal')||text.includes('furcsa')||symptom==='időszakosan leáll')){
     summary='Ha nincs egyértelmű alarm, de az inverter működése rendellenes, firmware/vezérlőszoftver-probléma is erősen vizsgálandó.';
     addCause(causes,'Firmware / vezérlőszoftver',80,'Valós Deye esetben firmware-frissítés után megszűnt a rendellenes működés.');
