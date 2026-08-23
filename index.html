@@ -367,7 +367,11 @@ const relevant = cases
     // Korábbi szakmai tapasztalat hatása az aktuális diagnózisra
 const bestCase = relevant[0];
 
-if (bestCase && bestCase.score >= 8) {
+if (
+  bestCase &&
+  bestCase.score >= 8 &&
+  symptomGroup(bestCase.symptom) === symptomGroup(symptom)
+) {
   const previousStatus = (bestCase.status || '').toLowerCase();
 
   if (
