@@ -147,7 +147,7 @@ try {
       (!currentSymptom || !hSymptom || hSymptom === currentSymptom)
     );
   });
-
+console.log('Tanulási esetek:', learnedCases);
   causes.forEach(cause => {
     const causeWords = cause.title
       .toLowerCase()
@@ -172,7 +172,7 @@ try {
         else if (status.includes('rossz irány')) learning -= 4;
       }
     });
-
+    console.log('Tanulás:', cause.title, 'eredeti:', cause.pct, 'módosítás:', learning);
     cause.pct = Math.max(5, Math.min(95, cause.pct + learning));
   });
 
