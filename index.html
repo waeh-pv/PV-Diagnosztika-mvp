@@ -184,6 +184,29 @@ addCause(causes,'Akkumulátor vagy inverter teljesítménykorlát',45,'Áram-, t
 
 next = 'SOC-, BMS- és kisütési beállítások célzott ellenőrzése';
 conf = 'Közepes';
+    } else if (
+  brand === 'Deye' &&
+  (
+    symptom === 'akkumulátor kommunikációs hiba' ||
+    text.includes('bms hiba') ||
+    text.includes('akku kommunikáció') ||
+    text.includes('akkumulátor kommunikáció')
+  )
+) {
+    summary = 'A kommunikációs hiba miatt az inverter nem kap megfelelő adatot az akkumulátor BMS-től. Elsőként a CAN/RS485 kapcsolatot és a BMS beállításokat kell ellenőrizni.';
+
+addCause(causes,'BMS / CAN kommunikációs hiba',82,'Hibás CAN/RS485 kapcsolat, kábel vagy kommunikációs megszakadás okozhatja a hibát.');
+addCause(causes,'Hibás akkumulátor protokoll / beállítás',68,'Nem megfelelő battery type vagy BMS protokoll esetén az inverter nem kommunikál megfelelően az akkumulátorral.');
+addCause(causes,'Akkumulátor BMS vagy inverter kommunikációs port hiba',42,'A BMS vagy az inverter kommunikációs interfészének hibája is okozhatja a kapcsolat megszakadását.');
+    steps.push(
+  'Ellenőrizd a CAN/RS485 kábel csatlakozását és bekötését.',
+  'Ellenőrizd, hogy a megfelelő akkumulátor/BMS protokoll van-e kiválasztva.',
+  'Nézd meg az akkumulátor és az inverter kommunikációs státuszát.',
+  'Ellenőrizd az akkumulátor BMS hibakódjait és eseménynaplóját.'
+);
+
+next = 'BMS kommunikáció és akkumulátor-protokoll célzott ellenőrzése';
+conf = 'Magas';
   } else if(brand==='Huawei' && symptom==='gyenge termelés'){
     summary='Gyenge termelésnél a PV oldal mellett az Active Power Control / zero-export konfigurációt is ellenőrizni kell.';
     addCause(causes,'Active Power Control / exportkorlátozás beállítás',78,'Valós Huawei esetben supporttal módosított zero-export/limitation beállítás után jelentősen javult a termelés.');
