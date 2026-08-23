@@ -180,7 +180,12 @@ function measurementSimilarity(oldCase) {
       (!currentSymptom || !hSymptom || hSymptom === currentSymptom)
     );
   });
-console.log('Tanulási esetek:', learnedCases);
+  const uniqueLearnedCases = Array.from(
+  new Map(
+    learnedCases.map(c => [c.case_id || c.id, c])
+  ).values()
+);
+console.log('Tanulási esetek:', uniqueLearnedCases);
   causes.forEach(cause => {
     const causeWords = cause.title
       .toLowerCase()
@@ -189,7 +194,7 @@ console.log('Tanulási esetek:', learnedCases);
 
     let learning = 0;
 
-    learnedCases.forEach(oldCase => {
+    uniqueLearnedCases.forEach(oldCase => {
       const oldText = (
         (oldCase.diagnosis || '') + ' ' +
         (oldCase.solution || '')
