@@ -161,6 +161,29 @@ $('analyze').onclick=async()=>{
     addCause(causes,'Firmware / vezérlőszoftver',80,'Valós Deye esetben firmware-frissítés után megszűnt a rendellenes működés.');
     addCause(causes,'Konfigurációs eltérés',52,'Beállítási hiba hasonló tünetet okozhat.');
     steps.push('Olvasd ki az aktuális firmware-verziót.','Ellenőrizd az alarm/history eseményeket.','Vesd össze a pillanatnyi energiaáramlást a mért értékekkel.','Supporttal ellenőriztesd, van-e javasolt firmware-frissítés.'); next='Firmware-verzió ellenőrzése és gyártói support'; conf='Közepes–magas';
+    } else if (
+  brand === 'Deye' &&
+  (
+    symptom === 'akkumulátor nem kisüt' ||
+    text.includes('akku nem kisüt') ||
+    text.includes('akkumulátor nem kisüt') ||
+    text.includes('nem kisüt')
+  )
+) {
+    summary = 'Az akkumulátor nem kisüt. Elsőként a SOC-határokat, a BMS kommunikációt és a kisütési beállításokat kell ellenőrizni.';
+
+addCause(causes,'Kisütési limit / SOC beállítás',75,'Minimum SOC, Time of Use vagy akkumulátor-kisütési korlátozás blokkolhatja a kisütést.');
+addCause(causes,'BMS / akkumulátor kommunikáció',65,'Kommunikációs vagy kompatibilitási probléma miatt az inverter letilthatja a kisütést.');
+addCause(causes,'Akkumulátor vagy inverter teljesítménykorlát',45,'Áram-, teljesítmény- vagy hőmérsékleti limit is megakadályozhatja a kisütést.');
+    steps.push(
+  'Ellenőrizd a minimum SOC és reserve SOC beállításokat.',
+  'Nézd meg, engedélyezett-e az akkumulátor kisütése és nincs-e Time of Use tiltás.',
+  'Ellenőrizd a BMS kommunikációt és az akkumulátor státuszát.',
+  'Nézd meg az aktuális kisütési teljesítmény- és áramlimiteket.'
+);
+
+next = 'SOC-, BMS- és kisütési beállítások célzott ellenőrzése';
+conf = 'Közepes';
   } else if(brand==='Huawei' && symptom==='gyenge termelés'){
     summary='Gyenge termelésnél a PV oldal mellett az Active Power Control / zero-export konfigurációt is ellenőrizni kell.';
     addCause(causes,'Active Power Control / exportkorlátozás beállítás',78,'Valós Huawei esetben supporttal módosított zero-export/limitation beállítás után jelentősen javult a termelés.');
