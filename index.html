@@ -209,6 +209,33 @@ const relevant = cases
   .sort((a, b) => b.score - a.score)
   .slice(0, 5);
 
+    // Korábbi szakmai tapasztalat hatása az aktuális diagnózisra
+const bestCase = relevant[0];
+
+if (bestCase && bestCase.score >= 8) {
+  const previousStatus = (bestCase.status || '').toLowerCase();
+
+  if (
+    previousStatus === 'helyes' ||
+    previousStatus.includes('jó irány')
+  ) {
+   const oldNote = document.getElementById('experienceNote');
+if (oldNote) oldNote.remove();
+
+const note = document.createElement('p');
+note.id = 'experienceNote';
+note.className = 'small';
+note.textContent =
+  '📚 Korábbi hasonló szakmai eset alapján: ' +
+  (bestCase.solution ||
+   bestCase.diagnosis ||
+   'megerősített korábbi szakmai tapasztalat') +
+  '.';
+
+$('summary').appendChild(note);
+  }
+}
+
 
     if (!relevant.length) {
       box.textContent = 'Nincs még hasonló korábbi szakmai eset.';
