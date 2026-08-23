@@ -31,6 +31,7 @@
     <select id="symptom"><option>nem termel</option><option>gyenge termelés</option><option>időszakosan leáll</option><option>hibakód jelenik meg</option><option>akkumulátor nem tölt</option><option>akkumulátor nem merül</option><option>hálózatból indokolatlanul vételez</option><option>zero-export / visszwatt probléma</option><option>kommunikáció / WiFi probléma</option><option>dongle offline</option><option>kommunikáció megszakad</option><option>alacsony termelés</option><option>inverter online/offline váltakozik</option><option>akkumulátor nem tölt</option><option>zero-export / visszwatt probléma</option>
 <option>akkumulátor nem kisüt</option>
 <option>akkumulátor kommunikációs hiba</option>
+      <option>hálózatról nem tölt</option>
 <option>alacsony akkumulátor SOC</option>
 <option>inverter nem termel</option>
 <option>inverter leáll / újraindul</option>
@@ -207,6 +208,30 @@ addCause(causes,'Akkumulátor BMS vagy inverter kommunikációs port hiba',42,'A
 
 next = 'BMS kommunikáció és akkumulátor-protokoll célzott ellenőrzése';
 conf = 'Magas';
+    } else if (
+  brand === 'Deye' &&
+  (
+    symptom === 'hálózatról nem tölt' ||
+    text.includes('hálózatról nem tölt') ||
+    text.includes('grid charge') ||
+    text.includes('ac charge')
+  )
+) {
+  summary = 'Az akkumulátor hálózati töltésének elmaradását leggyakrabban a Grid Charge / Time of Use beállítás, a töltési SOC-határ vagy a BMS töltési tiltása okozza.';
+
+  addCause(causes,'Grid Charge / AC Charge nincs engedélyezve',82,'Ha a hálózati töltés nincs engedélyezve, az inverter PV-ről tölthet, de hálózatról nem.');
+  addCause(causes,'Time of Use / töltési időablak beállítás',70,'A hálózati töltés csak az engedélyezett időszakban indul el.');
+  addCause(causes,'SOC-határ vagy BMS töltési tiltás',55,'A SOC-beállítás vagy a BMS töltési korlátozása megakadályozhatja a hálózati töltést.');
+
+  steps.push(
+    'Ellenőrizd, hogy a Grid Charge / AC Charge engedélyezve van-e.',
+    'Ellenőrizd a Time of Use töltési időablakokat.',
+    'Nézd meg a töltési SOC-határokat.',
+    'Ellenőrizd a BMS státuszt és a maximális töltési áramot.'
+  );
+
+  next = 'Grid Charge, Time of Use és BMS töltési beállítások célzott ellenőrzése';
+  conf = 'Magas';
   } else if(brand==='Huawei' && symptom==='gyenge termelés'){
     summary='Gyenge termelésnél a PV oldal mellett az Active Power Control / zero-export konfigurációt is ellenőrizni kell.';
     addCause(causes,'Active Power Control / exportkorlátozás beállítás',78,'Valós Huawei esetben supporttal módosított zero-export/limitation beállítás után jelentősen javult a termelés.');
