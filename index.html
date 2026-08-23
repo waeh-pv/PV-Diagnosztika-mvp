@@ -143,6 +143,43 @@ const currentMeasurements = {
   grid_kw: grid,
   battery_soc: soc
 };
+  function symptomGroup(text) {
+  const t = (text || '').toLowerCase();
+
+  if (
+    t.includes('wifi') ||
+    t.includes('dongle') ||
+    t.includes('offline') ||
+    t.includes('online') ||
+    t.includes('kommunik') ||
+    t.includes('kapcsolat') ||
+    t.includes('megszakad')
+  ) return 'communication';
+
+  if (
+    t.includes('gyenge termel') ||
+    t.includes('alacsony termel') ||
+    t.includes('kevés termel') ||
+    t.includes('nem termel')
+  ) return 'low-production';
+
+  if (
+    t.includes('akku') ||
+    t.includes('battery') ||
+    t.includes('soc') ||
+    t.includes('tölt') ||
+    t.includes('kisüt')
+  ) return 'battery';
+
+  if (
+    t.includes('zero-export') ||
+    t.includes('visszwatt') ||
+    t.includes('smart meter') ||
+   t.includes('ct mér') || t.includes('ct szenzor') || t.includes('áramváltó')
+  ) return 'metering';
+
+  return 'other';
+}
 function measurementSimilarity(oldCase) {
   let score = 0;
   let compared = 0;
@@ -168,16 +205,21 @@ function measurementSimilarity(oldCase) {
 
   return score / compared;
 }  
-
+const currentSymptomGroup = symptomGroup(symptom);
   const learnedCases = history.filter(c => {
     const hBrand = (c.manufacturer || '').toLowerCase();
     const hModel = (c.inverter_model || '').toLowerCase();
     const hSymptom = (c.symptom || '').toLowerCase();
-
+const hSymptomGroup = symptomGroup(c.symptom);
     return (
       hBrand === currentBrand &&
       (!currentModel || !hModel || hModel === currentModel) &&
-      (!currentSymptom || !hSymptom || hSymptom === currentSymptom)
+     (
+  !currentSymptom ||
+  !hSymptom ||
+  hSymptom === currentSymptom ||
+  (currentSymptomGroup !== 'other' && hSymptomGroup === currentSymptomGroup)
+)
     );
   });
   const uniqueLearnedCases = Array.from(
